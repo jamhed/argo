@@ -10,9 +10,9 @@ jobs:
     - uses: actions/checkout@master
     - run: docker build .
     - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-    - run: docker tag workflow-controller jamhed/workflow-controller:${{ github.ref }}
-    - run: docker tag argoexec jamhed/argoexec:${{ github.ref }}
-    - run: docker tag argocli  jamhed/argocli:${{ github.ref }}
-    - run: docker push jamhed/workflow-controller:${{ github.ref }}
-    - run: docker push jamhed/argoexec:${{ github.ref }}
-    - run: docker push jamhed/argocli:${{ github.ref }}
+    - run: docker tag workflow-controller jamhed/workflow-controller:${GITHUB_REF##*/}
+    - run: docker tag argoexec jamhed/argoexec:${GITHUB_REF##*/}
+    - run: docker tag argocli  jamhed/argocli:${GITHUB_REF##*/}
+    - run: docker push jamhed/workflow-controller:${GITHUB_REF##*/}
+    - run: docker push jamhed/argoexec:${GITHUB_REF##*/}
+    - run: docker push jamhed/argocli:${GITHUB_REF##*/}
