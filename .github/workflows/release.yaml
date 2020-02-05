@@ -1,0 +1,19 @@
+name: publish
+on:
+  push:
+    branches:
+    - devel
+    tags:
+    - '*'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Publish to Registry
+      uses: jerray/publish-docker-action@master
+      with:
+        name: jamhed/argo
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        auto_tag: true
