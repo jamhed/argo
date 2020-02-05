@@ -1,8 +1,6 @@
 name: publish
 on:
   push:
-    branches:
-    - devel
     tags:
     - '*'
 jobs:
