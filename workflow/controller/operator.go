@@ -609,12 +609,8 @@ func (woc *wfOperationCtx) podReconciliation() error {
 	// It is now impossible to infer pod status. The only thing we can do at this point is to mark
 	// the node with Error.
 	for nodeID, node := range woc.wf.Status.Nodes {
-		if node.Type != wfv1.NodeTypePod || node.Completed() || node.StartedAt.IsZero() {
+		if node.Type != wfv1.NodeTypePod || node.Completed() || node.StartedAt.IsZero() || node.Pending() {
 			// node is not a pod, it is already complete, or it can be re-run.
-			continue
-		}
-		if node.Pending() {
-			woc.markNodePending(node.Name, errors.InternalErrorf("Reschedule pending update"))
 			continue
 		}
 		if _, ok := seenPods[nodeID]; !ok {
@@ -1153,6 +1149,13 @@ func (woc *wfOperationCtx) executeTemplate(nodeName string, orgTmpl wfv1.Templat
 		lastChildNode, err := woc.getLastChildNode(retryParentNode)
 		if err != nil {
 			return woc.markNodeError(retryNodeName, err), err
+		}
+		if lastChildNode != nil && lastChildNode.Pending() && processedTmpl.GetType() == wfv1.TemplateTypeContainer {
+			err = woc.executeContainer(lastChildNode.Name, processedTmpl, boundaryID)
+			if apierr.IsForbidden(err) {
+				return woc.markNodePending(node.Name, err), nil
+			}
+			return lastChildNode, nil
 		}
 		if lastChildNode != nil && !lastChildNode.Completed() {
 			// Last child node is still running.
