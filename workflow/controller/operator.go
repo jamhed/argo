@@ -609,8 +609,12 @@ func (woc *wfOperationCtx) podReconciliation() error {
 	// It is now impossible to infer pod status. The only thing we can do at this point is to mark
 	// the node with Error.
 	for nodeID, node := range woc.wf.Status.Nodes {
-		if node.Type != wfv1.NodeTypePod || node.Completed() || node.StartedAt.IsZero() || node.Pending() {
+		if node.Type != wfv1.NodeTypePod || node.Completed() || node.StartedAt.IsZero() {
 			// node is not a pod, it is already complete, or it can be re-run.
+			continue
+		}
+		if node.Pending() {
+			woc.markNodePending(node.Name, errors.InternalErrorf("Reschedule pending update"))
 			continue
 		}
 		if _, ok := seenPods[nodeID]; !ok {
